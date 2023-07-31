@@ -1,39 +1,74 @@
-import reactLogo from './assets/react.svg'
-import tsLogo from './assets/ts-logo.svg'
-import sassLogo from './assets/sass.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import reactLogo from "./assets/react.svg";
+import tsLogo from "./assets/ts-logo.svg";
+import sassLogo from "./assets/sass.svg";
+import viteLogo from "/vite.svg";
+import "./App.css";
 import Counter from "./components/Counter/Counter";
+import { useEffect, useState } from "react";
 
+export type TAAdviceSlip = {
+  slip: {
+    id: number;
+    advice: string;
+  };
+};
 function App() {
+  // fetch a data from api
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<TAAdviceSlip | null>(null);
+  const [error, setError] = useState(null);
+
+  const slip = data?.slip?.advice;
+
+  const handleFetchData = async () => {
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+    const api = "https://api.adviceslip.com/advice";
+
+    await fetch(api)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`this is http error ${response.status}`);
+          setLoading(true);
+          // setError("can not reach the api");
+        }
+        return response.json();
+      })
+      .then((advice) => {
+        setLoading(false);
+        setData(advice);
+        setError(null);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setData(null);
+        setLoading(false);
+      });
+    // .then((data) => data.slip.advice);
+    console.log(data);
+  };
+
+  useEffect(() => {
+    handleFetchData();
+  }, []);
+
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-        <a href="https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes-func.html" target="_blank">
-          <img src={tsLogo} className="logo typescript" alt="TypeScript logo" />
-        </a>
-          <a href="https://sass-lang.com/documentation/syntax/" target="_blank">
-          <img src={sassLogo} className="logo sass" alt="Sass logo" />
-          </a>
-      </div>
-      <h1 style={{fontStyle: 'italic'}}>Getting down to <span className={'bismuth'} style={{color: '#9551ff', fontStyle: 'normal'}}>Bismuth</span></h1>
+      <h1 style={{ fontStyle: "italic" }}>
+        <span
+          className={"bismuth"}
+          style={{ color: "#9551ff", fontStyle: "normal" }}
+        >
+          Live Advice App
+        </span>
+      </h1>
       <div className="card">
-        <Counter />
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        {/* {data.ma} */}
+        <p> {slip}</p>
+        <button onClick={handleFetchData}>Refershe</button>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite, React, TypeScript and Sass logos to learn more
-      </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
